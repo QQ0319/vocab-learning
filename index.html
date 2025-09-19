@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>English Learning – Full Practice</title>
+  <title>English Learning – Full Practice (No Speech)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f9f9f9; margin:20px; }
     h1 { text-align:center; }
@@ -27,6 +27,7 @@
   <div class="section">
     <h2>2. Multiple Choice Quiz</h2>
     <div id="quiz"></div>
+    <button onclick="newQuiz()">🔄 Next Question</button>
   </div>
 
   <div class="section">
@@ -78,13 +79,6 @@ function updateScore(){
   }
 }
 
-// 發音
-function speak(text){
-  let utter=new SpeechSynthesisUtterance(text);
-  utter.lang="en-US";
-  speechSynthesis.speak(utter);
-}
-
 // ========== Cloze Test ==========
 function newFill(){
   const box=document.getElementById("fillBox");
@@ -115,11 +109,6 @@ function newFill(){
     setTimeout(newFill,1500);
   };
   box.appendChild(btn);
-
-  let spk=document.createElement("button");
-  spk.textContent="🔊 發音";
-  spk.onclick=()=>speak(v.en);
-  box.appendChild(spk);
 }
 newFill();
 
@@ -133,25 +122,24 @@ function newQuiz(){
   p.textContent=`What is the meaning of: "${q.en}" ?`;
   quizDiv.appendChild(p);
 
-  let spk=document.createElement("button");
-  spk.textContent="🔊 發音";
-  spk.onclick=()=>speak(q.en);
-  quizDiv.appendChild(spk);
-
+  let answerShown = false;
   shuffle([...vocab]).slice(0,3).concat([q]).sort(()=>Math.random()-0.5).forEach(opt=>{
     let btn=document.createElement("button");
     btn.textContent=opt.zh;
     btn.onclick=()=>{
+      if (answerShown) return; // 防止多次點擊
       total++;
       if(opt===q){
         correct++;
         btn.className="correct";
+        quizDiv.innerHTML += `<p class="correct">✅ 正確答案：${q.zh}</p>`;
       }else{
         btn.className="wrong";
+        quizDiv.innerHTML += `<p class="wrong">❌ 正確答案：${q.zh}</p>`;
         if(!wrongItems.includes(q)) wrongItems.push(q);
       }
+      answerShown = true;
       updateScore();
-      setTimeout(newQuiz,1500);
     };
     quizDiv.appendChild(btn);
   });
@@ -168,10 +156,6 @@ vocab.forEach(v=>{
   d.style.margin="5px";
   d.innerHTML=`<b>${v.en}</b><br><span style="color:#888;">(點擊顯示中文)</span>`;
   d.onclick=()=>d.innerHTML=`<b>${v.en}</b><br>${v.zh}`;
-  const spk=document.createElement("button");
-  spk.textContent="🔊";
-  spk.onclick=(e)=>{ e.stopPropagation(); speak(v.en); };
-  d.appendChild(spk);
   flashDiv.appendChild(d);
 });
 
