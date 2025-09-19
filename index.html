@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>English Learning – Full Practice (No Speech)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f9f9f9; margin:20px; }
+    h1 { text-align:center; }
+    .section { margin:20px 0; padding:15px; background:#fff; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+    button { margin:5px; padding:6px 10px; }
+    input { padding:6px; margin-right:5px; }
+    .correct { color:green; font-weight:bold; }
+    .wrong { color:red; font-weight:bold; }
+    #scoreBoard { font-weight:bold; margin-top:10px; }
+    ul { list-style:none; padding:0; }
+    li { background:white; padding:8px; margin:5px; border:1px solid #ddd; border-radius:5px; }
+  </style>
+</head>
+<body>
+  <h1>📝 English Learning – Past Activities</h1>
+
+  <div class="section" id="fill">
+    <h2>1. Cloze Test (克漏字)</h2>
+    <div id="fillBox"></div>
+  </div>
+
+  <div class="section">
+    <h2>2. Multiple Choice Quiz</h2>
+    <div id="quiz"></div>
+    <button onclick="newQuiz()">🔄 Next Question</button>
+  </div>
+
+  <div class="section">
+    <h2>3. Flashcards</h2>
+    <div id="flashcards"></div>
+  </div>
+
+  <div class="section">
+    <h2>4. Matching</h2>
+    <p>Match English with Chinese:</p>
+    <div style="display:flex; gap:20px;">
+      <ul id="english"></ul>
+      <ul id="chinese"></ul>
+    </div>
+    <button onclick="newMatching()">🔄 Next Matching</button>
+  </div>
+
+  <div class="section">
+    <h2>📊 Score Board</h2>
+    <div id="scoreBoard"></div>
+    <div id="wrongList"></div>
+  </div>
+
+<script>
+const vocab = [
+  {en:"cooked dinner", zh:"煮晚餐", ctx:"Yesterday, I ____."},
+  {en:"listened to music", zh:"聽音樂", ctx:"Last night, she ____."},
+  {en:"yesterday", zh:"昨天", ctx:"I met him ____."},
+  {en:"visited my grandparents", zh:"拜訪我的祖父母", ctx:"Last weekend, I ____."},
+  {en:"played basketball", zh:"打籃球", ctx:"An hour ago, they ____."},
+  {en:"cleaned the room", zh:"打掃房間", ctx:"He ____ this morning."},
+  {en:"an hour ago", zh:"一小時前", ctx:"She left home ____."},
+  {en:"watched a movie", zh:"看電影", ctx:"We ____ together."},
+  {en:"play the recorder", zh:"吹直笛", ctx:"Can you ____ in class?"}
+];
+
+// 成績追蹤
+let correct=0, total=0;
+let wrongItems=[];
+function updateScore(){
+  let rate = total>0 ? Math.round((correct/total)*100) : 0;
+  document.getElementById("scoreBoard").textContent=`✅ 正確：${correct} ／ 📚 總題數：${total} （正確率：${rate}%）`;
+
+  let wrongDiv=document.getElementById("wrongList");
+  if(wrongItems.length>0){
+    wrongDiv.innerHTML="<p>❌ 錯題清單：</p><ul>"+wrongItems.map(w=>`<li>${w.en} = ${w.zh}</li>`).join("")+"</ul>";
+  }else{
+    wrongDiv.innerHTML="";
+  }
+}
+
+// ========== Cloze Test ==========
+function newFill(){
+  const box=document.getElementById("fillBox");
+  box.innerHTML="";
+  let v=vocab[Math.floor(Math.random()*vocab.length)];
+  let q=document.createElement("p");
+  q.textContent=`句子：${v.ctx}  (提示：${v.zh})`;
+  box.appendChild(q);
+
+  let input=document.createElement("input");
+  input.placeholder="輸入英文...";
+  box.appendChild(input);
+
+  let btn=document.createElement("button");
+  btn.textContent="Check";
+  btn.onclick=()=>{
+    total++;
+    if(input.value.trim().toLowerCase()===v.en.toLowerCase()){
+      correct++;
+      q.innerHTML+=` ✅ (${v.en})`;
+      q.className="correct";
+    }else{
+      q.innerHTML+=` ❌ 正確答案: ${v.en}`;
+      q.className="wrong";
+      if(!wrongItems.includes(v)) wrongItems.push(v);
+    }
+    updateScore();
+    setTimeout(newFill,1500);
+  };
+  box.appendChild(btn);
+}
+newFill();
+
+// ========== Quiz ==========
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+function newQuiz(){
+  const quizDiv=document.getElementById("quiz");
+  quizDiv.innerHTML="";
+  let q = vocab[Math.floor(Math.random()*vocab.length)];
+  let p=document.createElement("p");
+  p.textContent=`What is the meaning of: "${q.en}" ?`;
+  quizDiv.appendChild(p);
+
+  let answerShown = false;
+  shuffle([...vocab]).slice(0,3).concat([q]).sort(()=>Math.random()-0.5).forEach(opt=>{
+    let btn=document.createElement("button");
+    btn.textContent=opt.zh;
+    btn.onclick=()=>{
+      if (answerShown) return; // 防止多次點擊
+      total++;
+      if(opt===q){
+        correct++;
+        btn.className="correct";
+        quizDiv.innerHTML += `<p class="correct">✅ 正確答案：${q.zh}</p>`;
+      }else{
+        btn.className="wrong";
+        quizDiv.innerHTML += `<p class="wrong">❌ 正確答案：${q.zh}</p>`;
+        if(!wrongItems.includes(q)) wrongItems.push(q);
+      }
+      answerShown = true;
+      updateScore();
+    };
+    quizDiv.appendChild(btn);
+  });
+}
+newQuiz();
+
+// ========== Flashcards ==========
+const flashDiv=document.getElementById("flashcards");
+vocab.forEach(v=>{
+  const d=document.createElement("div");
+  d.style.border="1px solid #ccc";
+  d.style.display="inline-block";
+  d.style.padding="10px";
+  d.style.margin="5px";
+  d.innerHTML=`<b>${v.en}</b><br><span style="color:#888;">(點擊顯示中文)</span>`;
+  d.onclick=()=>d.innerHTML=`<b>${v.en}</b><br>${v.zh}`;
+  flashDiv.appendChild(d);
+});
+
+// ========== Matching ==========
+function newMatching(){
+  const engList=document.getElementById("english");
+  const zhList=document.getElementById("chinese");
+  engList.innerHTML=""; zhList.innerHTML="";
+  shuffle(vocab).forEach(v=>{
+    let li=document.createElement("li");
+    li.textContent=v.en; li.draggable=true;
+    li.ondragstart=e=>e.dataTransfer.setData("text",v.en);
+    engList.appendChild(li);
+  });
+  shuffle(vocab).forEach(v=>{
+    let li=document.createElement("li");
+    li.textContent=v.zh;
+    li.ondragover=e=>e.preventDefault();
+    li.ondrop=e=>{
+      let en=e.dataTransfer.getData("text");
+      total++;
+      if(v.en===en){
+        correct++;
+        li.style.color="green"; 
+        li.textContent+=` ✅ (${en})`;
+      }else{
+        li.style.color="red";
+        if(!wrongItems.includes(v)) wrongItems.push(v);
+      }
+      updateScore();
+    };
+    zhList.appendChild(li);
+  });
+}
+newMatching();
+</script>
+</body>
+</html>
